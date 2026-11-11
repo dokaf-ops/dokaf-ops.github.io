@@ -1,38 +1,46 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-<meta charset="UTF-8">
+<meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Derek Okafor</title>
-<style>
-body { background: #1a1a1a; color: #e0e0e0; font-family: 'Courier New', monospace; max-width: 720px; margin: 0 auto; padding: 2rem 1rem; line-height: 1.6; }
-a { color: #8ab4f8; }
-nav { margin-bottom: 2rem; }
-nav a { margin-right: 1.5rem; text-decoration: none; }
-nav a:hover { text-decoration: underline; }
-h1 { font-size: 1.4rem; margin-bottom: 0.25rem; }
-.subtitle { color: #999; font-size: 0.9rem; margin-bottom: 2rem; }
-.posts { margin-top: 1.5rem; }
-.posts li { margin-bottom: 0.75rem; }
-footer { margin-top: 3rem; color: #666; font-size: 0.8rem; }
-</style>
+<link rel="stylesheet" href="style.css">
 </head>
 <body>
-<h1>Derek Okafor</h1>
-<p class="subtitle">cluster reliability, gpu infrastructure, homelab</p>
 <nav>
-<a href="about.html">About</a>
+<a href="#about">About</a>
 <a href="writing.html">Writing</a>
 <a href="projects.html">Projects</a>
-<a href="contact.html">Contact</a>
+<a href="#contact">Contact</a>
 </nav>
-<p>I keep GPU training clusters running for a living and tinker with four used A6000s at home. This site is where I put notes on failure analysis, infrastructure tooling and things I have learned the hard way.</p>
-<h2>Recent writing</h2>
-<ul class="posts">
-<li><a href="post-gpu-health-checks.html">When a GPU passes health checks but still disappears under load</a> <span style="color:#666">// 2026-10-28</span></li>
-<li><a href="post-homelab-a6000.html">Keeping four used A6000s useful in a closet</a> <span style="color:#666">// 2026-11-02</span></li>
-<li><a href="post-failure-bundle.html">What goes in a first-pass failure bundle</a> <span style="color:#666">// 2026-11-08</span></li>
+
+<section id="about">
+<h1>Derek Okafor</h1>
+<p>I am a cluster reliability engineer based in Ashburn, Virginia. I grew up in Northern Virginia and never really left. I studied Network Engineering at Northern Virginia Community College. My first real job was NOC work at a regional ISP in Herndon. After that I moved to a colocation facility in Sterling, doing hands-on infrastructure. Eventually I ended up in Ashburn, working in data centers. On-call rotations, racking hardware, tracing cable paths, chasing down failures at 2am.</p>
+<p>Right now I am on contract doing GPU cluster reliability. The work is distributed systems, networking, infrastructure, failure analysis and practical tooling. I keep clusters running. When a node drops out of a training job, I get paged. I know the fabric, the orchestration layer, the failure patterns.</p>
+<p>At home I have four used A6000s in a closet. That is my homelab. I tinker when I can, which is not often. I have a two-year-old, and between the kid and on-call, the window for side projects is small.</p>
+<p>Languages: English, Spanish, French, Arabic.</p>
+<p>Skills and Tools: Linux, Kubernetes, Slurm, Python, Bash, Go, Ansible, Terraform, Prometheus, Grafana, DCGM, NCCL, InfiniBand, RDMA.</p>
+</section>
+
+<section id="writing">
+<h2>Writing</h2>
+<ul>
+<li><a href="writing/gpu-health-checks.html">A GPU can pass health checks and still vanish under load</a> (2026-10-18)</li>
+<li><a href="writing/a6000s-closet.html">Four used A6000s in a closet</a> (2026-10-31)</li>
+<li><a href="writing/failure-bundle.html">The first failure bundle I collect</a> (2026-11-08)</li>
 </ul>
-<footer>Derek Okafor, 2026</footer>
+</section>
+
+<section id="contact">
+<h2>Contact</h2>
+<ul>
+<li>Email: <a href="mailto:derekokafor1@gmail.com">derekokafor1@gmail.com</a></li>
+<li><a href="https://www.linkedin.com/in/derek-okafor-2475b844a/">LinkedIn</a></li>
+<li><a href="https://news.ycombinator.com/user?id=dokaf-ops">Hacker News</a></li>
+<li><a href="https://github.com/dokaf-ops">GitHub</a></li>
+<li><a href="https://github.com/dokaf-ops/gpu-cluster-notes">GPU Cluster Notes</a></li>
+</ul>
+</section>
 </body>
 </html>
