@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Derek Okafor — Cluster Reliability</title>
+<title>Derek Okafor: Cluster Reliability</title>
 <style>
 body { font-family: 'Courier New', monospace; max-width: 720px; margin: 40px auto; padding: 0 20px; line-height: 1.6; color: #222; background: #fafafa; }
 h1 { font-size: 1.4em; margin-bottom: 0.2em; }
@@ -16,91 +16,20 @@ a { color: #0366d6; }
 </head>
 <body>
 <h1>Derek Okafor</h1>
-<p>Contract cluster reliability engineer — Ashburn, VA.<br>
+<p>Contract cluster reliability engineer, Ashburn, VA.<br>
 GPU training infrastructure, node/fabric behavior, failure analysis, homelab notes.</p>
-<p><a href="https://github.com/dokaf-ops/gpu-cluster-notes">gpu-cluster-notes repo</a> · <a href="https://www.linkedin.com/in/dokaf-ops">LinkedIn</a></p>
-
+<p><a href="https://github.com/dokaf-ops/gpu-cluster-notes">gpu-cluster-notes repo</a> · <a href="https://www.linkedin.com/in/derek-okafor-2475b844a/">LinkedIn</a></p>
 <hr>
 <h2>Field Note: Three Ways a Training Cluster Lies Before a Node Drops</h2>
-
-<div class="disclaimer"><strong>Disclaimer:</strong> This example is entirely <strong>synthetic</strong>. It contains no employer data, customer data, real measurements, real hostnames, IPs, serial numbers, or production logs. All names, topologies, and log excerpts are fictional and constructed for illustration only.</div>
-
-<p>Large GPU training clusters rarely fail cleanly. A node that is about to drop usually lies first — reporting nominal health while subtle indicators accumulate. Here are three patterns I see repeatedly.</p>
-
+<p>Large GPU training clusters rarely fail cleanly. A node that is about to drop usually lies first, reporting nominal health while subtle indicators accumulate. Here are three patterns I see repeatedly.</p>
 <h3>1. The Healthy-But-Slow Heartbeat</h3>
-<p>Node health checks return OK, but heartbeat latency creeps from the usual 2–4 ms band up toward 15 ms over several minutes. Schedulers do not flag this because the check is binary: alive or not. The lag is often the first sign of a degrading NIC or a PCIe link retraining silently.</p>
-
-<h3>2. NCCL Allreduce Succeeds — At a Penalty</h3>
+<p>Node health checks return OK, but heartbeat latency creeps from the usual 2 to 4 ms band up toward 15 ms over several minutes. Schedulers do not flag this because the check is binary: alive or not. The lag is often the first sign of a degrading NIC or a PCIe link retraining silently.</p>
+<h3>2. NCCL Allreduce Succeeds: At a Penalty</h3>
 <p>With <code>NCCL_DEBUG=INFO</code>, allreduce calls still complete, but the per-rail bandwidth drops asymmetrically. One rail might show 80 GB/s while a sibling drops to 40 GB/s, suggesting a single NIC or switch ASIC is struggling. The job keeps running; collective time just doubles.</p>
-
 <h3>3. NVML Says Fine, DCGM Says Otherwise</h3>
 <p><code>nvidia-smi</code> (backed by NVML) may report GPU clocks and temperatures within spec, while DCGM health diagnostics flag an emerging row-remapping event or an uncorrectable ECC count climbing. The two views diverge before the hard fault.</p>
-
-<h3>SYNTHETIC Topology Diagram</h3>
-<div class="diagram">
-[SYNTHETIC — not a real deployment]
-
-         ┌──────── Spine Switch S1 ────────┐
-         │                                  │
-    Leaf-A (Rail 0)                   Leaf-B (Rail 1)
-     │       │                         │       │
-  Node-01  Node-02                  Node-01  Node-02
-  8×GPU    8×GPU                    8×GPU    8×GPU
-  NIC-R0   NIC-R0                   NIC-R1   NIC-R1
-
-  * Node-02 / Rail 1 NIC degrades → asymmetric allreduce
-  * All names fictional; no real hardware referenced
-</div>
-
-<h3>SYNTHETIC Diagnostic Sequence — Failure-Log Excerpts</h3>
-<p><em>All log lines below are fictional. They illustrate a diagnostic pattern, not a real event.</em></p>
-
-<pre>
-# Step 1 — Check node health (SYNTHETIC)
-$ cluster-healthcheck --node node-02
-[2025-01-15T08:12:03Z] node-02: status=HEALTHY heartbeat_latency_ms=14.3 (threshold: 30)
-# Looks fine, but 14 ms is 4x baseline.
-
-# Step 2 — NCCL debug (SYNTHETIC)
-$ NCCL_DEBUG=INFO torchrun --nproc_per_node=8 allreduce_bench.py
-node-02:0: NCCL INFO Ring 00 : Rail 0 bw 82.1 GB/s
-node-02:0: NCCL INFO Ring 00 : Rail 1 bw 38.7 GB/s   ← asymmetric
-# Rail 1 bandwidth is roughly half of Rail 0.
-
-# Step 3 — Rail / NIC detection (SYNTHETIC)
-$ ibstat mlx5_1    # Rail-1 NIC on node-02
-CA 'mlx5_1'
-  Port 1:
-    State:         Active
-    Physical state: LinkUp
-    Rate:          200 Gb/s   ← reported rate looks normal
-    Link layer:    InfiniBand
-# NIC reports link-up; problem is intermittent.
-
-# Step 4 — NVML vs DCGM (SYNTHETIC)
-$ nvidia-smi -q -d CLOCK,TEMPERATURE | grep -A2 'GPU 00000000:3B:00.0'
-  Clocks: Graphics 1410 MHz, Memory 1593 MHz
-  Temperature: GPU 62C  ← within spec
-
-$ dcgmi diag -r 3 -j
-{
-  "GPU 00000000:3B:00.0": {
-    "ECC": { "uncorrectable_counts": 4, "row_remap_pending": true },
-    "Health": "WARN — row remap pending, recommend drain"
-  }
-}
-# DCGM flags a pending row remap that nvidia-smi did not surface.
-
-# Step 5 — Drain and resume (SYNTHETIC)
-$ cluster-ctl drain node-02 --reason "pending-row-remap"
-[2025-01-15T08:20:44Z] node-02 drained. Jobs migrated to node-05.
-$ cluster-ctl resume-job 7041 --exclude node-02
-[2025-01-15T08:21:02Z] Job 7041 resumed on 127/128 nodes. ETA recalculated.
-</pre>
-
 <p>The pattern: trust the <em>gradient</em> of the signal, not the binary gate. Heartbeat creep, asymmetric rail bandwidth, and NVML/DCGM divergence together form a reliable early-warning triangle.</p>
-
 <hr>
-<p style="font-size:0.85em; color:#666;">© 2025 Derek Okafor. Plain static site — no trackers, no frameworks.</p>
+<p style="font-size:0.85em; color:#666;">© 2025 Derek Okafor. Plain static site. No trackers, no frameworks.</p>
 </body>
 </html>
