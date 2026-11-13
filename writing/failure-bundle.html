@@ -1,0 +1,35 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>The first failure bundle I collect</title>
+<link rel="stylesheet" href="../style.css">
+</head>
+<body>
+<nav>
+<a href="../index.html">Home</a>
+<a href="../about.html">About</a>
+<a href="../writing.html">Writing</a>
+<a href="https://github.com/dokaf-ops/gpu-cluster-notes">Projects</a>
+<a href="../index.html#contact">Contact</a>
+</nav>
+<main>
+<header>
+<h1>The first failure bundle I collect</h1>
+<div class="post-date">Derek Okafor</div>
+</header>
+<p>When a node drops out of a job, the first few minutes decide whether you keep useful evidence or lose it. This is the bundle I collect before anything else.</p>
+<h2>Timestamps first</h2>
+<p>Capture the wall clock time you got paged. Record the node's last heartbeat time from the scheduler. Pull dmesg with timestamps. Save the job orchestrator's event log for that node. Timestamps drift. Note the NTP sync state if you can get it.</p>
+<h2>System state snapshot</h2>
+<p>Grab the full dmesg buffer. Save kern.log and syslog tails. Capture GPU state (nvidia-smi output or equivalent). Record PCIe link status. Save memory and CPU utilization. Get the network interface counters and link state. Dump the IPMI/BMC system event log. Copy these to off-node storage before anyone reboots.</p>
+<h2>Preserving context</h2>
+<p>Note the job ID, rank, and what the node was doing. Record which other nodes were in the same job. Save the orchestrator and scheduler logs for the time window. Get the fabric manager or switch logs for the relevant ports. Do not restart services or reboot until you have all of this.</p>
+<h2>Node-local vs. fabric vs. job-wide</h2>
+<p>A single node with a GPU fallen off the PCIe bus is node-local. Multiple nodes losing network at the same time points to fabric. A job that fails on every retry with different nodes each time is likely job-level or software. Check if the same node has failed before. Check if other jobs on the same switch or same rack are affected. If the node is the only one and the hardware logs show an error, it is probably node-local. If the fabric counters show CRC errors or link flaps on multiple ports, look at the switch.</p>
+<h2>Closing</h2>
+<p>Collect first. Diagnose second. The evidence you skip is the evidence you needed.</p>
+</main>
+</body>
+</html>
